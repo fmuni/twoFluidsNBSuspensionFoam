@@ -1,0 +1,190 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  4.x                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     twoPhaseEulerFoam;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         1000000;
+
+deltaT          0.0025;
+
+writeControl   adjustableRunTime;
+
+writeInterval   100;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression compressed;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+adjustTimeStep  yes;
+
+maxCo           0.5;
+
+maxDeltaT       0.5;
+
+libs (
+         "libOpenFOAM.so"
+         "libsampling.so"
+     );
+
+functions
+{
+
+  #includeFunc residuals
+
+    residuals
+    {
+        type            residuals;
+        writeControl   timeStep;
+        writeInterval  1;
+        fields
+        (
+            U.fluid
+            U.particles
+            p_rgh
+            alpha.particles
+        );
+    }
+
+/*
+  lineSample
+  {
+    type sets;
+    enabled true;
+    verbose true;
+    interpolationScheme cellPoint;
+    outputControl writeTime;
+    outputInterval 10;
+    setFormat raw;
+    fields (alpha.particles U.particles);
+
+    sets
+    (
+       line1
+       {
+         type uniform;
+         axis y;
+         start (350 0 0.5);
+         end   (350 18 0.5);
+         nPoints 100;
+       }
+    );
+ }
+*/
+
+/*
+    radialDisrtributionFunction
+    {
+        libs            ("libutilityFunctionObjects.so");
+
+        type             coded;
+
+        name     RDF;
+
+        codeExecute
+        #{
+            scalar R(0.0165/2.);  //Cylinder radius
+            label    binN(15);    //Number of radial bins
+            vector axis(0,0,1); //Cylinder axis
+
+
+            scalar deltaR = (R/binN);
+            volVectorField      Cc (
+                                       this->mesh().C()
+                                     & ( I - axis*axis )
+                                   );
+            const scalarField& Vc(this->mesh().V());
+
+            const volScalarField& alpha =
+                    this->mesh().lookupObject<volScalarField>("alpha.particles");
+
+            scalar totVol[binN];
+            scalar binV[binN];
+
+            for(int bin=0;bin<binN;bin++)
+            {
+                totVol[bin] = scalar(0.);
+                binV[bin] = scalar(0.);
+            }
+
+
+            forAll(Cc,cellI)
+            {
+                for(int bin=0;bin<binN;bin++)
+                {
+                    scalar cellRsq(
+
+                                      Cc[cellI].x()*Cc[cellI].x()
+                                    + Cc[cellI].y()*Cc[cellI].y()
+                                    + Cc[cellI].z()*Cc[cellI].z()
+
+                                );
+                    if(
+                          cellRsq < (bin+1)*deltaR*(bin+1)*deltaR
+                          && cellRsq > bin*deltaR*bin*deltaR
+                      )
+                    {
+                        binV[bin] += Vc[cellI]*alpha[cellI];
+                        totVol[bin] += Vc[cellI];
+                    }
+                }
+            }
+
+            for(int bin=0;bin<binN;bin++)
+            {
+                reduce(totVol[bin],sumOp<scalar>());
+                reduce(binV[bin],sumOp<scalar>());
+                binV[bin] /= ( totVol[bin] + scalar(1e-16));
+            }
+
+            if(Pstream::master())
+            {
+                ofstream file;
+                file.open ("RDF.csv",ofstream::app);
+
+                file << this->mesh().time().value();
+                for(int bin=0;bin<binN;bin++)
+                {
+                   file  << ", "
+                           << binV[bin];
+                }
+                file << "\n";
+                file.close();
+            }
+            Info << "Writing radial distribution function" << endl;
+
+        #};
+    } */
+}
+
+
+// ************************************************************************* //

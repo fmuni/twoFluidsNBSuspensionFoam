@@ -1,0 +1,100 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  4.x                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    "alpha.*"
+    {
+        nAlphaCorr      1;
+        nAlphaSubCycles 3;
+        nAlphaOffDiagCorr 2;
+
+
+        smoothLimiter   0.1;
+
+        implicitPhasePressure no;
+        solver          PCG;
+        preconditioner	DIC;
+        tolerance       1e-7;
+        relTol          0;
+        minIter         1;
+    }
+
+    p_rgh
+    {
+        solver          PCG;
+        preconditioner	diagonal;
+        smoother GaussSeidel;
+        tolerance       1e-05;
+        relTol          1e-05;
+        maxIter         50;
+        minIter 0;  
+    }
+
+    p_rghFinal
+    {
+        $p_rgh;
+        relTol          0;
+        maxIter 1000;
+    }
+
+    "U.*|Theta.*"
+    {
+        solver          GAMG;
+        smoother        GaussSeidel;
+        tolerance       1e-5;
+        relTol          0;
+        minIter         1;
+    }
+
+
+
+}
+
+PIMPLE
+{
+    nOuterCorrectors    1;
+    nCorrectors         1;
+    nNonOrthogonalCorrectors 0;
+    pRefCell 1;
+    pRefValue 1e5;
+    faceMomentum  on;
+
+    residualControl
+    {
+        p_rgh           1e-5;
+        "U.*"           1e-5;
+ //       "alpha.*"       1e-3;
+    }
+
+}
+
+relaxationFactors
+{
+    equations
+    {
+
+         "U.fluid|U.particles"  1;
+         p_rgh        0.7;
+
+         "(U.fluid|U.particles)Final"  1;
+         p_rghFinal 1;
+    }
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,106 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  6
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      turbulenceProperties.particles;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+simulationType  RAS;
+
+RAS
+{
+    RASModel kineticTheory;
+
+    turbulence      on;
+    printCoeffs     on;
+
+    kineticTheoryCoeffs
+    {
+        equilibrium             off;
+
+        e                       0.8;
+        alphaMax                0.68;
+        alphaMinFriction        0.68;
+        residualAlpha           1e-4;
+
+        viscosityModel          Gidaspow;
+        conductivityModel       Gidaspow;
+        granularPressureModel   Lun;
+        frictionalStressModel   JohnsonJackson;
+        radialModel             SinclairJackson;
+        suspensionStressModel   DLL;
+        //nonLocalShearRateModel  kineticShearRate;
+       // nonLocalShearRateModel uniformConstant;
+        //nonLocalShearRateModel linearChannel;
+        nonLocalShearRateModel particleDiffusion;
+        BoyerCoeffs
+        {
+            mu1                         0.32;
+            mu2                         0.37;
+            I0                         5e-03;
+            lambdaAnisotropic  (1 0.8 0.5);
+        }
+
+        DLLCoeffs
+        {
+            a                         -1;
+            b                         0;
+            c                         1;
+            KN                        0.75;
+            fixedLambdas  yes;
+        }
+        uniformConstantCoeffs
+        {
+            value #calc "5e-05*0.0001/(0.0009*0.0009)";
+            suspensionShear off;
+        }
+
+        kineticShearRateCoeffs
+        {}
+
+        linearChannelCoeffs
+        {
+            channelHeight  0.0018;
+            suspensionShear on;
+        }
+
+        particleDiffusionCoeffs
+        {
+            alpha   0.60;
+            b       1.05;
+            A       0.31;
+            Mus     0.26;
+            nSteps  5;
+        }
+
+        JohnsonJacksonCoeffs
+        {
+            Fr                      0.05;
+            eta                     2;
+            p                       5;
+            phi                     28.5;
+            alphaDeltaMin           0.05;
+        }
+    }
+
+    phasePressureCoeffs
+    {
+        preAlphaExp     500;
+        expMax          1000;
+        alphaMax        0.62;
+        g0              1000;
+    }
+}
+
+
+// ************************************************************************* //

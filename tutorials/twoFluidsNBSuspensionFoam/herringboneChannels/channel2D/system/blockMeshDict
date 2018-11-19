@@ -1,0 +1,275 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  5                                     |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+convertToMeters 1e-06;
+
+vertices #codeStream
+{
+    codeInclude
+    #{
+        #include "pointField.H"
+    #};
+
+    code
+    #{
+        // Initalize point field
+        pointField points(36);
+
+        // Define channel size
+        scalar  Hx(135);
+        scalar  Hy(90);
+        scalar  Hz(30);
+
+        // Define herringbone measures
+        scalar HB_h(20);
+        scalar HB_t(50);
+
+
+/*      VERTEX LABELING SCHEME
+
+        1st floor
+        11------7------3
+        |       |      |
+        |       6      |
+        |     / | \    |
+        |   /   |   \  |
+        | /     |     \|
+        10      |      2
+        |       5      |
+        |     / | \    |
+        |   /   |   \  |
+        | /     |     \|
+        9       |      1
+        |       |      |
+        |       |      |
+        8-------4------0
+
+        Next floor: add 12 to the vertex number.
+        We have a total of 3 floors (not all the vertexes are used!)
+
+*/
+        // Initialize variables
+        label vId(0);
+        scalar zCoords[3] = {scalar(0),Hz,Hz+HB_h};
+        scalar yCoords[3] = {scalar(0),Hy/scalar(2),Hy};
+        scalar xCoordsA[4] = {
+            scalar(0),
+            Hx/scalar(2) - HB_t,
+            Hx/scalar(2),
+            Hx
+        };
+        scalar xCoordsB[4] = {
+            scalar(0),
+            Hx/scalar(2) - HB_t + Hy/scalar(2),
+            Hx/scalar(2) + Hy/scalar(2),
+            Hx
+        };
+
+
+        // Loop over floors
+        for(label zId=0;zId<3;zId++)
+        {
+            // Loop over y
+            for(label yId=0;yId<3;yId++)
+            {                
+                // Loop over x
+                for(label xId=0;xId<4;xId++)
+                {
+                    if(yId==1)
+                    {
+                        points[vId] = point(
+                            xCoordsB[xId],
+                            yCoords[yId],
+                            zCoords[zId]
+                            );
+                    }
+                    else
+                    {
+                        points[vId] = point(
+                            xCoordsA[xId],
+                            yCoords[yId],
+                            zCoords[zId]
+                            );
+                    }
+
+                    vId++;
+                }
+            }
+        }
+        // Write vertexes
+        os  << points;
+    #};
+};
+
+
+blocks #codeStream
+{
+
+    code
+    #{
+        // Define channel size
+        scalar  Hx(135);
+        scalar  Hy(90);
+        scalar  Hz(30);
+
+        // Define herringbone measures
+        scalar HB_h(20);
+        scalar HB_t(50);  
+
+
+        scalar zCoords[3] = {scalar(0),Hz,Hz+HB_h};
+        scalar yCoords[3] = {scalar(0),Hy/scalar(2),Hy};
+        scalar xCoords[4] = {
+            scalar(0),
+            Hx/scalar(2) - HB_t,
+            Hx/scalar(2),
+            Hx
+        };
+
+        // Now define resolution per micrometer
+        scalar deltaRes(2);  
+
+        // Calculate resolutions
+
+        int xRes[3] = {
+            int(xCoords[1]/(deltaRes/2)),
+            int((xCoords[2]-xCoords[1])/deltaRes),
+            int((xCoords[3]-xCoords[2])/deltaRes)
+        };
+
+        int yRes =  int(yCoords[1]/deltaRes);
+
+        int zRes[2] = {
+            int(zCoords[1]/deltaRes),
+            int((zCoords[2]-zCoords[1])/deltaRes)
+        };
+
+
+        // Create blocks from vertexes
+        wordList blockString;
+
+        blockString.append("hex ( 0 1 5 4 12 13 17 16 ) ");
+        blockString.append("hex ( 1 2 6 5 13 14 18 17 ) ");
+        blockString.append("hex ( 2 3 7 6 14 15 19 18 ) ");
+        blockString.append("hex ( 4 5 9 8 16 17 21 20 ) ");
+        blockString.append("hex ( 5 6 10 9 17 18 22 21 ) ");
+        blockString.append("hex ( 6 7 11 10 18 19 23 22 ) ");
+        blockString.append("hex ( 13 14 18 17 25 26 30 29 ) ");
+        blockString.append("hex ( 17 18 22 21 29 30 34 33 ) ");
+
+        int blockId(0);
+
+        os<<endl<<" (" << endl;
+
+        // Write blocks
+        for(label zId=0;zId<2;zId++)
+        {
+            for(label yId=0;yId<2;yId++)
+            {
+                for(label xId=0;xId<3;xId++)
+                {
+                    if(zId==1 && xId != 1 )
+                    {
+                        continue;
+                    }
+
+                    os  << endl
+                        << blockString[blockId] 
+                        << " ( "
+                        << xRes[xId]
+                        << " "
+                        << yRes
+                        << " "
+                        << zRes[zId]
+                        << " )"
+                        <<" simpleGrading (1 1 1)"
+                        <<endl;
+                    
+                    blockId++;
+
+                }
+            }
+        }
+
+        os<<");" << endl;
+
+   #};
+};
+
+edges
+(
+);
+
+boundary
+(
+
+    walls
+    {
+        type walls;
+        faces
+        (
+            (0 1 13 12)
+            (1 2 14 13)
+            (2 3 15 14)
+            (4 5 1 0)
+            (5 6 2 1)
+            (6 7 3 2)
+            (8 9 5 4)
+            (9 10 6 5)
+            (10 11 7 6)
+            (8 9 21 20)
+            (9 10 22 21)
+            (10 11 23 22)
+            (12 13 17 16)
+            (14 15 19 18)
+            (18 19 23 22)
+            (16 17 21 20)
+            (13 14 26 25)
+            (17 13 25 29)
+            (21 17 29 33)
+            (22 21 33 34)
+            (22 34 30 18)
+            (18 30 26 14)
+            (34 33 29 30)
+            (30 29 25 26)
+        );
+    }
+
+   cyc_in
+    {
+        type cyclic;
+        neighbourPatch cyc_out;
+        faces
+        (
+            (0 12 16 4)
+            (8 4 16 20)
+        );
+    }
+
+    cyc_out
+    {
+        type cyclic;
+        neighbourPatch cyc_in;
+        faces
+        (
+           (7 11 23 19)
+           (3 7 19 15)
+        );
+    }
+
+
+);
+
+// ************************************************************************* //

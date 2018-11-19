@@ -1,0 +1,64 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  4.x                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U.particles;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+inletMaxVelocity  0.001;
+halfChannel       0.0009;
+curvature  #calc "-$inletMaxVelocity/($halfChannel * $halfChannel)";
+
+boundaryField
+{
+
+    inlet
+    {
+        type            cyclic;
+/*
+        profile         polynomial
+        (
+            (($inletMaxVelocity 0 0)    (0 0 0))
+            (($curvature 0 0)    (2 0 0))
+        );
+        direction       (0 1 0);
+        origin          $halfChannel;
+*/
+
+    }
+    outlet
+    {
+        type               cyclic;
+        value              $internalField;
+        phi                phi.particles;
+        inletValue              $internalField;
+    }
+
+    "walls"
+    {
+        type             noSlip;
+    }
+
+    "symm.*"
+    {
+//        type symmetryPlane;
+        type empty;
+    }
+
+
+}
+
+// ************************************************************************* //

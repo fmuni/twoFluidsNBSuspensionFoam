@@ -1,0 +1,61 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  4.x                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default     Euler;
+}
+
+gradSchemes
+{
+    default     faceMDLimited leastSquares 1;
+}
+
+divSchemes
+{
+    default                         Gauss linear;
+
+    "div\(phi,alpha.*\)"            bounded Gauss linearUpwind grad(alpha);
+    "div\(phir,alpha.*\)"           bounded Gauss linearUpwind grad(alpha);
+
+    "div\(alphaRhoPhi.*,U.*\)"      bounded Gauss linearUpwindV grad(U);
+    "div\(phi.*,U.*\)"              bounded Gauss linearUpwindV grad(U);
+
+    "div\(alphaRhoPhi.*,(h|e).*\)"  Gauss limitedLinear 1;
+    "div\(alphaRhoPhi.*,K.*\)"      Gauss limitedLinear 1;
+    "div\(alphaPhi.*,p\)"           Gauss limitedLinear 1;
+
+}
+
+laplacianSchemes
+{
+    default     Gauss linear corrected;
+    bounded     Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default     linear;
+}
+
+snGradSchemes
+{
+    default     corrected;
+    bounded     corrected;
+}
+
+// ************************************************************************* //

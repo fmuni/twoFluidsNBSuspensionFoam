@@ -1,0 +1,135 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+convertToMeters 0.01;
+
+R   2.38;
+R0  0.64;
+pi 3.14159265;
+nCellsx 50;
+nCellsy 50;
+
+
+
+
+vertices
+(
+
+  (#calc "-$R" 0 0)
+  (#calc "-$R0" 0 0)
+  (0 $R0 0)
+  (0 $R 0)
+  (#calc "-$R" 0 0.1)
+  (#calc "-$R0" 0 0.1)
+  (0 $R0 0.1)
+  (0 $R 0.1)
+
+  ($R0 0 0)
+  ($R 0 0)
+  ($R0 0 0.1)
+  ($R 0 0.1)
+
+   (0 #calc "-$R0" 0)
+   (0 #calc "-$R" 0)
+   (0 #calc "-$R0" 0.1)
+   (0 #calc "-$R" 0.1)
+
+);
+
+blocks
+(
+    hex (0 1 2 3 4 5 6 7) ($nCellsx $nCellsy 1) simpleGrading (1 1 1)
+    hex (3 2 8 9 7 6 10 11) ($nCellsx $nCellsy 1) simpleGrading (1 1 1)
+    hex (12 13 9 8 14 15 11 10) ($nCellsx $nCellsy 1) simpleGrading (1 1 1)
+    hex (1 0 13 12 5 4 15 14) ($nCellsx $nCellsy 1) simpleGrading (1 1 1)
+);
+
+edges
+(
+    arc 1 2 (#calc "-$R0*cos($pi/4)" #calc "$R0*sin($pi/4)" 0)
+    arc 3 0 (#calc "-$R*cos($pi/4)" #calc "$R*sin($pi/4)" 0)
+    arc 5 6 (#calc "-$R0*cos($pi/4)" #calc "$R0*sin($pi/4)" 0.1)
+    arc 7 4 (#calc "-$R*cos($pi/4)" #calc "$R*sin($pi/4)" 0.1)
+
+    arc 2 8 (#calc "$R0*cos($pi/4)" #calc "$R0*sin($pi/4)" 0)
+    arc 3 9 (#calc "$R*cos($pi/4)" #calc "$R*sin($pi/4)" 0)
+    arc 6 10 (#calc "$R0*cos($pi/4)" #calc "$R0*sin($pi/4)" 0.1)
+    arc 7 11 (#calc "$R*cos($pi/4)" #calc "$R*sin($pi/4)" 0.1)
+
+    arc 8 12 (#calc "$R0*cos($pi/4)" #calc "-$R0*sin($pi/4)" 0)
+    arc 9 13 (#calc "$R*cos($pi/4)" #calc "-$R*sin($pi/4)" 0)
+    arc 14 10 (#calc "$R0*cos($pi/4)" #calc "-$R0*sin($pi/4)" 0.1)
+    arc 15 11 (#calc "$R*cos($pi/4)" #calc "-$R*sin($pi/4)" 0.1)
+
+    arc 1 12 (#calc "-$R0*cos($pi/4)" #calc "-$R0*sin($pi/4)" 0)
+    arc 0 13 (#calc "-$R*cos($pi/4)" #calc "-$R*sin($pi/4)" 0)
+    arc 5 14 (#calc "-$R0*cos($pi/4)" #calc "-$R0*sin($pi/4)" 0.1)
+    arc 15 4 (#calc "-$R*cos($pi/4)" #calc "-$R*sin($pi/4)" 0.1)
+
+);
+
+boundary
+(
+    internalWall
+    {
+        type wall;
+        faces
+        (
+            (1 2 6 5)
+            (2 8 10 6)
+            (8 12 14 10)
+            (12 1 5 14)
+        );
+    }
+
+    externalWall
+    {
+        type wall;
+        faces
+        (
+            (0 4 7 3)
+            (3 7 11 9)
+            (9 11 15 13)
+            (0 13 15 4)
+
+        );
+    }
+
+
+    frontAndBack
+    {
+        type empty;
+        faces
+        (
+            (0 3 2 1)
+            (4 5 6 7)
+            (2 3 9 8)
+            (6 10 11 7)
+            (8 9 13 12)
+            (10 14 15 11)
+            (0 1 12 13)
+            (4 15 14 5)
+        );
+    }
+
+
+);
+
+mergePatchPairs
+(
+);
+
+// ************************************************************************* //
