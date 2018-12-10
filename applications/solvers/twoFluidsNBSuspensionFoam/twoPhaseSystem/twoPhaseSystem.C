@@ -467,7 +467,7 @@ void Foam::twoPhaseSystem::solve()
                     alphaPhic10,
                     (alphaSubCycle.index()*Sp)(),
                     (Su - (alphaSubCycle.index() - 1)*Sp*alpha1)(),
-                    UniformField<scalar>(phase1_.alphaMax()),
+                    phase1_.alphaMax(),
                     zeroField()
                 );
 
@@ -493,7 +493,7 @@ void Foam::twoPhaseSystem::solve()
                 alphaPhic1,
                 Sp,
                 Su,
-                UniformField<scalar>(phase1_.alphaMax()),
+                phase1_.alphaMax(),
                 zeroField()
             );
 
@@ -604,10 +604,22 @@ bool Foam::twoPhaseSystem::read()
 }
 
 
+const Foam::dragModel& Foam::twoPhaseSystem::drag(const phaseModel& phase) const
+{
+    return drag_->phaseModel(phase);
+}
+
+
+const Foam::virtualMassModel&
+Foam::twoPhaseSystem::virtualMass(const phaseModel& phase) const
+{
+    return virtualMass_->phaseModel(phase);
+}
+
+
 const Foam::dimensionedScalar& Foam::twoPhaseSystem::sigma() const
 {
     return pair_->sigma();
 }
-
 
 // ************************************************************************* //

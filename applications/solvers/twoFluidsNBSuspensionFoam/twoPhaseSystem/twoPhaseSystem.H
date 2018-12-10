@@ -194,6 +194,12 @@ public:
                 const phaseModel& continuous
             ) const;
 
+            //- Return the drag model for the given phase
+            const dragModel& drag(const phaseModel& phase) const;
+
+            //- Return the virtual mass model for the given phase
+            const virtualMassModel& virtualMass(const phaseModel& phase) const;
+            
             //- Return the surface tension coefficient
             const dimensionedScalar& sigma() const;
 
