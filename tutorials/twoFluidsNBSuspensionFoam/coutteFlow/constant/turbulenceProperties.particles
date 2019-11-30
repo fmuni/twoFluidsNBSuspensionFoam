@@ -53,8 +53,9 @@ RAS
 
         DLLCoeffs
         {
-            a                         2.5;
-            b                         0.1;
+            a                         0;
+	    b                         2.5;
+            c                         0.1;
             KN                        0.75;
             fixedLambdas  yes;
         }
