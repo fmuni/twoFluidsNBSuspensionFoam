@@ -7,7 +7,6 @@ currDir=$PWD
 
 ./Allclean.sh
 
-rm -r 0
 cp -r 0.init 0
 
 #Run the Case

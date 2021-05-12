@@ -6,4 +6,4 @@ cd ${0%/*} || exit 1    # run from this directory
 . $WM_PROJECT_DIR/bin/tools/CleanFunctions
 
 cleanCase
-rm RDF.csv
+rm -r 0
